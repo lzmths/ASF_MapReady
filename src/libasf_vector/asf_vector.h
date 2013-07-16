@@ -28,11 +28,7 @@ typedef enum {
   RGPS,
   RGPS_GRID,
   RGPS_WEATHER,
-  GRANULE_COUNT,
-  GRANULE_LIST,
-  GRANULE_DETAILS_A3,
-  GRANULE_DETAILS,
-  FOOT_PRINT,
+  GRANULE,
   MULTIMATCH,
   URSA,
   DATAPOOL,
@@ -319,6 +315,9 @@ int hap2shape(char *inFile, char *outFile, int listFlag);
 
 // Prototypes from smap.c
 int smap2shape(char *inFile, char *outFile);
+
+// Prototypes from smap.c
+int granule2shape(char *inFile, char *outFile);
 
 // Prototypes from custom.c
 int custom2shape(char *inFile, const char *format,

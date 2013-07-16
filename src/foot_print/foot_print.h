@@ -74,7 +74,7 @@ double wb2_modes[] = { 27.1 };
 #define WB2_COUNT 1
 
 typedef struct {
-  char name[20];
+  char name[60];
   char satellite[5];
   char beam_mode[5];
   double off_nadir;
@@ -83,12 +83,12 @@ typedef struct {
   int track;
   int orbit;
   int frame;
-  char date[25];
+  char start_date[35];
+  char end_date[35];
   char orbit_dir[20];
   int path;
-  int terrain; // 1 land, 0 water
-  double center_lat;
-  double center_lon;
+  int terrain; // 2 coast, 1 land, 0 water
+  int insar; // 1 suitable for InSAR processing, 0 not suitable
   double near_start_lat;
   double near_start_lon;
   double far_start_lat;
