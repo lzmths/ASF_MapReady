@@ -238,7 +238,7 @@ int isTerrasar_ext(char *dataFile, int checkPolarimetry, char **error)
 
 int isTerrasar(char *dataFile, char **error)
 {
-  isTerrasar_ext(dataFile, FALSE, &error);
+  return isTerrasar_ext(dataFile, FALSE, &error);
 }
 
 int isRadarsat2(char *dataFile, char **error)

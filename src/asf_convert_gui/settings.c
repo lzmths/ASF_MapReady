@@ -1524,6 +1524,9 @@ settings_to_config_string(const Settings *s,
         sprintf(ret, "%sinput file = %s\n", ret, tmp);
         free(tmp);
     }
+    else if (input_data_format == INPUT_FORMAT_RADARSAT2) {
+    	sprintf(ret, "%sinput file = %s\n", ret, input_file);
+    }
     // must strip _meta.airsar for airsar
     else if (input_data_format == INPUT_FORMAT_AIRSAR) {
         char *tmp = STRDUP(input_file);

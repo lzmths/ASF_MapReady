@@ -9,6 +9,8 @@
 #include "ceos.h"
 #include "terrasar.h"
 #include "radarsat2.h"
+#include <gsl/gsl_multifit.h>
+#include <math.h>
 #include <assert.h>
 
 /**Harcodings to fix calibration of ASF data***
@@ -208,6 +210,36 @@ static void recalibration(char *str, report_level_t level)
 	    "automatically applied:\n%s\n"
 	    "If you don't want to apply these changes, please "
 	    "(temporarily) remove\nthe workreport file.\n", str);
+}
+
+static void polynomial_fit(int obs, double *dx, double *dy, double *coeff)
+{
+  int ii, jj;
+  double chisq;
+ 
+  gsl_matrix *x = gsl_matrix_alloc(obs, 3);
+  gsl_vector *y = gsl_vector_alloc(obs);
+  gsl_vector *c = gsl_vector_alloc(3);
+  gsl_matrix *cov = gsl_matrix_alloc(3, 3);
+ 
+  for(ii=0; ii<obs; ii++) {
+    gsl_matrix_set(x, ii, 0, 1.0);
+    for(jj=0; jj<3; jj++)
+      gsl_matrix_set(x, ii, jj, pow(dx[ii], jj));
+    gsl_vector_set(y, ii, dy[ii]);
+  }
+ 
+  gsl_multifit_linear_workspace *ws = gsl_multifit_linear_alloc(obs, 3);
+  gsl_multifit_linear(x, y, c, cov, &chisq, ws);
+ 
+  for(ii=0; ii<3; ii++)
+    coeff[ii] = gsl_vector_get(c, ii);
+ 
+  gsl_multifit_linear_free(ws);
+  gsl_matrix_free(x);
+  gsl_matrix_free(cov);
+  gsl_vector_free(y);
+  gsl_vector_free(c);
 }
 
 void create_cal_params(const char *inSAR, meta_parameters *meta, 
@@ -628,15 +660,30 @@ void create_cal_params(const char *inSAR, meta_parameters *meta,
     meta->calibration->r2 = r2;
 
     radarsat2_meta *radarsat2 = read_radarsat2_meta(sarName);
-    r2->num_elements = radarsat2->numberOfSamplesPerLine;
+		r2->num_elements = radarsat2->numberOfSamplesPerLine;
+    double *index = (double *) MALLOC(sizeof(double)*r2->num_elements);
+    int nElements = r2->num_elements + (r2->num_elements / 10);
     for (ii=0; ii<r2->num_elements; ii++) {
+    	index[ii] = ii;
       r2->a_beta[ii] = radarsat2->gains_beta[ii];
       r2->a_gamma[ii] = radarsat2->gains_gamma[ii];
       r2->a_sigma[ii] = radarsat2->gains_sigma[ii];
     }
+    double coeff[3];
+    polynomial_fit(r2->num_elements, index, r2->a_beta, &coeff);
+    for (ii=r2->num_elements; ii<nElements; ii++)
+    	r2->a_beta[ii] = coeff[0] + coeff[1]*ii + coeff[2]*ii*ii;
+    polynomial_fit(r2->num_elements, index, r2->a_gamma, &coeff);
+    for (ii=r2->num_elements; ii<nElements; ii++)
+    	r2->a_gamma[ii] = coeff[0] + coeff[1]*ii + coeff[2]*ii*ii;
+    polynomial_fit(r2->num_elements, index, r2->a_sigma, &coeff);
+    for (ii=r2->num_elements; ii<nElements; ii++)
+    	r2->a_sigma[ii] = coeff[0] + coeff[1]*ii + coeff[2]*ii*ii;
+    r2->num_elements = nElements;
+    FREE(index);
     r2->b = radarsat2->offset;
     if (meta->general->image_data_type == COMPLEX_IMAGE ||
-	meta->general->image_data_type == POLARIMETRIC_IMAGE)
+				meta->general->image_data_type == POLARIMETRIC_IMAGE)
       r2->slc = TRUE;
     else
       r2->slc = FALSE;

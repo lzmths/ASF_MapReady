@@ -1,0 +1,10 @@
+[Lambert Conformal Conic]
+Area = Transantarctic Mountains
+Datum = WGS84
+Spheroid = WGS84
+First standard parallel = -76.66666666666667
+Second standard parallel = -79.33333333333333
+Central meridian = 162
+Latitude of origin = -78
+False easting = 0
+False northing = 0

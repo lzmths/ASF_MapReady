@@ -26,6 +26,8 @@ typedef struct {
   int numberOfSamplesPerLine;    // sample_count
   double sampledPixelSpacing;    // x_pixel_size
   double sampledLineSpacing;     // y_pixel_size
+  double sceneCenterCoordLat;    // center latitude
+  double sceneCenterCoordLon;    // center longitude
   double semiMajorAxis;          // semi-major axis
   double semiMinorAxis;          // semi-minor axis
   char lineTimeOrdering[20];     // flipping vertical when decreasing

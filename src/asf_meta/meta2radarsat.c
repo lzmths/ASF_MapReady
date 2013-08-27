@@ -234,6 +234,12 @@ radarsat2_meta *read_radarsat2_meta(const char *dataFile)
      "product.imageAttributes.rasterAttributes.sampledPixelSpacing");
   radarsat2->sampledLineSpacing = xml_get_double_value(doc, 
      "product.imageAttributes.rasterAttributes.sampledLineSpacing");
+  radarsat2->sceneCenterCoordLat = xml_get_double_value(doc,
+	 "product.imageAttributes.geographicInformation."
+	 "rationalFunctions.latitudeOffset");
+  radarsat2->sceneCenterCoordLon = xml_get_double_value(doc,
+	 "product.imageAttributes.geographicInformation."
+	 "rationalFunctions.longitudeOffset");
   radarsat2->semiMajorAxis = xml_get_double_value(doc, 
      "product.imageAttributes.geographicInformation."
      "referenceEllipsoidParameters.semiMajorAxis");
@@ -516,8 +522,8 @@ meta_parameters* radarsat2meta(radarsat2_meta *radarsat2)
   meta->general->start_sample = 0;
   meta->general->x_pixel_size = radarsat2->sampledPixelSpacing;
   meta->general->y_pixel_size = radarsat2->sampledLineSpacing;
-  //meta->general->center_latitude = radarsat2->sceneCenterCoordLat;
-  //meta->general->center_longitude = radarsat2->sceneCenterCoordLon;
+  meta->general->center_latitude = radarsat2->sceneCenterCoordLat;
+  meta->general->center_longitude = radarsat2->sceneCenterCoordLon;
   meta->general->re_major = radarsat2->semiMajorAxis;
   meta->general->re_minor = radarsat2->semiMinorAxis;
 
@@ -593,16 +599,7 @@ meta_parameters* radarsat2meta(radarsat2_meta *radarsat2)
   meta->location->lat_end_far_range = radarsat2->sceneCornerCoord4Lat;
   meta->location->lon_end_far_range = radarsat2->sceneCornerCoord4Lon;
 
-  // Still need to determine center location, really only needed to get
-  // the earth radius straight
-  meta->general->center_longitude = (radarsat2->sceneCornerCoord1Lon +
-				     radarsat2->sceneCornerCoord2Lon +
-				     radarsat2->sceneCornerCoord3Lon +
-				     radarsat2->sceneCornerCoord4Lon) / 4.0;
-  location_to_latlon(meta, meta->general->sample_count/2, 
-		     meta->general->line_count/2, 0.0, &lat, &lon, &height);
-  meta->general->center_latitude = lat;
-  meta->general->center_longitude = lon;
+  // Calculated earth radius and satellite height
   lat = meta->general->center_latitude * D2R;
   re = meta->general->re_major;
   rp = meta->general->re_minor;

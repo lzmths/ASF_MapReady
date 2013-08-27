@@ -350,13 +350,13 @@ void check_parameters(projection_type_t projection_type, datum_type_t datum,
 	  meta->general->center_latitude < min_lat) {
 	if (force_flag)
 	  report_func("Geocoding of areas with latitudes outside the defined range "
-		      "(%.1f deg %.1f deg) in the Lambert Conformal Conic "
+		      "(%.1f deg to %.1f deg) in the Lambert Conformal Conic "
 		      "projection with the standard parallels (first: %.1f and "
 		      "second: %.1f ) is not advisable.\n", min_lat,
 		      max_lat, pp->lamcc.plat1, pp->lamcc.plat2);
 	else
 	  report_func("Geocoding of areas with latitudes outside the defined range "
-		      "(%.1f deg %.1f deg) in the Lambert Conformal Conic "
+		      "(%.1f deg to %.1f deg) in the Lambert Conformal Conic "
 		      "projection with the standard parallels (first: %.1f and "
 		      "second: %.1f ) is not supported by this tool.\n", min_lat,
 		      max_lat, pp->lamcc.plat1, pp->lamcc.plat2);
