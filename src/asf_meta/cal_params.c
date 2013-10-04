@@ -669,18 +669,19 @@ void create_cal_params(const char *inSAR, meta_parameters *meta,
       r2->a_gamma[ii] = radarsat2->gains_gamma[ii];
       r2->a_sigma[ii] = radarsat2->gains_sigma[ii];
     }
-    double coeff[3];
-    polynomial_fit(r2->num_elements, index, r2->a_beta, &coeff);
+    double *coeff = (double *) MALLOC(sizeof(double)*3);
+    polynomial_fit(r2->num_elements, index, r2->a_beta, coeff);
     for (ii=r2->num_elements; ii<nElements; ii++)
     	r2->a_beta[ii] = coeff[0] + coeff[1]*ii + coeff[2]*ii*ii;
-    polynomial_fit(r2->num_elements, index, r2->a_gamma, &coeff);
+    polynomial_fit(r2->num_elements, index, r2->a_gamma, coeff);
     for (ii=r2->num_elements; ii<nElements; ii++)
     	r2->a_gamma[ii] = coeff[0] + coeff[1]*ii + coeff[2]*ii*ii;
-    polynomial_fit(r2->num_elements, index, r2->a_sigma, &coeff);
+    polynomial_fit(r2->num_elements, index, r2->a_sigma, coeff);
     for (ii=r2->num_elements; ii<nElements; ii++)
     	r2->a_sigma[ii] = coeff[0] + coeff[1]*ii + coeff[2]*ii*ii;
     r2->num_elements = nElements;
     FREE(index);
+    FREE(coeff);
     r2->b = radarsat2->offset;
     if (meta->general->image_data_type == COMPLEX_IMAGE ||
 				meta->general->image_data_type == POLARIMETRIC_IMAGE)
@@ -788,14 +789,14 @@ float get_cal_dn(meta_parameters *meta, float incidence_angle, int sample,
     double index = (double)orig_sample*256./(double)(p->sample_count);
     if (index < 0) index = 0;
     if (index > p->sample_count-2) index = p->sample_count-2;
+
+/*
+    // Determine the noise value
+    double *noise = p->noise;
     int base = (int) index;
     double frac = index - base;
-    double *noise = p->noise;
-
-    // Determine the noise value
-
     double noiseValue = noise[base] + frac*(noise[base+1] - noise[base]);
-
+*/
     // Convert (amplitude) data number to scaled
     // Removed the noise floor removal
     //scaledPower =
@@ -813,11 +814,11 @@ float get_cal_dn(meta_parameters *meta, float incidence_angle, int sample,
     else if (radiometry == r_BETA || radiometry == r_BETA_DB)
       invIncAngle = 1/sin(incidence_angle);
 
+/*    
     double look = 25.0; // FIXME: hack to get things compiled
     double index = (look-16.3)*10.0;
-    double noiseValue;
     double *noise = p->noise;
-
+    double noiseValue;
     if (index <= 0)
       noiseValue = noise[0];
     else if (index >= 255)
@@ -829,7 +830,7 @@ float get_cal_dn(meta_parameters *meta, float incidence_angle, int sample,
 
       noiseValue = noise[base] + frac*(noise[base+1] - noise[base]);
     }
-
+*/
     // Convert (amplitude) data number to scaled
     // Remove the noise floor removal
     //scaledPower =
@@ -993,6 +994,9 @@ float get_rad_cal_dn(meta_parameters *meta, int line, int sample, char *bandExt,
   if (meta->calibration->type == asf_cal) { // ASF style data (PP and SSP)
 
     asf_cal_params *p = meta->calibration->asf;
+
+/*
+    // Determine the noise value
     double scaling = (double)meta->sar->original_sample_count/meta->general->sample_count;
     int orig_sample = meta->general->start_sample + scaling*sample;
     double index = (double)orig_sample*256./(double)(p->sample_count);
@@ -1001,15 +1005,13 @@ float get_rad_cal_dn(meta_parameters *meta, int line, int sample, char *bandExt,
     int base = (int) index;
     double frac = index - base;
     double *noise = p->noise;
-
-    // Determine the noise value
     double noiseValue = noise[base] + frac*(noise[base+1] - noise[base]);
-
     // Convert (amplitude) data number to scaled
     // No removal of noise floor anymore
-    //scaledPower = (p->a1*(inDn*inDn-p->a0*noiseValue) + p->a2)*invIncAngle;
-    //calValue = sqrt(((sigma * radCorr) - p->a2)/p->a1 + p->a0*noiseValue);
+    scaledPower = (p->a1*(inDn*inDn-p->a0*noiseValue) + p->a2)*invIncAngle;
+    calValue = sqrt(((sigma * radCorr) - p->a2)/p->a1 + p->a0*noiseValue);
     //calValue = sqrt(((sigma * radCorr) - p->a2)/p->a1);
+*/
     calValue = sqrt((sigma - p->a2)/p->a1) * radCorr;
   }
   else if (meta->calibration->type == asf_scansar_cal) { // ASF style ScanSar
@@ -1135,6 +1137,8 @@ float cal2amp(meta_parameters *meta, float incid, int sample, char *bandExt,
       invIncAngle = 1/sin(incid);
 
     asf_cal_params *p = meta->calibration->asf;
+
+/* No noise floor removal anymore
     double index = (double)sample*256./(double)(p->sample_count);
     int base = (int) index;
     double frac = index - base;
@@ -1142,9 +1146,9 @@ float cal2amp(meta_parameters *meta, float incid, int sample, char *bandExt,
     double noiseValue = noise[base] + frac*(noise[base+1] - noise[base]);
 
     // Convert (amplitude) data number to scaled
-    // No noise floor removal anymore
-    //scaledPower = (p->a1*(inDn*inDn-p->a0*noiseValue) + p->a2)*invIncAngle;
-    //ampValue = sqrt((scaledPower/invIncAngle - p->a2)/p->a1 + p->a0*noiseValue);
+    scaledPower = (p->a1*(inDn*inDn-p->a0*noiseValue) + p->a2)*invIncAngle;
+    ampValue = sqrt((scaledPower/invIncAngle - p->a2)/p->a1 + p->a0*noiseValue);
+*/
     ampValue = sqrt((scaledPower/invIncAngle - p->a2)/p->a1);
   }
   else if (meta->calibration->type == asf_scansar_cal) { // ASF style ScanSar

@@ -77,7 +77,7 @@ static int getNumParamsInString (char *str)
 {
   int ii, count=0;
  
-  for (ii>0; ii<strlen(str); ii++) {
+  for (ii=0; ii<strlen(str); ii++) {
     if (str[ii] == ' ')
       count++;
   }
@@ -485,7 +485,7 @@ meta_parameters* radarsat2meta(radarsat2_meta *radarsat2)
   meta_parameters *meta;
   char *mon[13]={"","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep",
      "Oct","Nov","Dec"};
-  double lat, lon, height, re, rp;
+  double lat, re, rp;
 
   // Allocate memory for metadata structure
   meta = raw_init();
