@@ -93,12 +93,11 @@ static char *get_string_attr(hid_t object, char *name)
 {
   char *str = NULL;
   hid_t attr = H5Aopen(object, name, H5P_DEFAULT);
-  hid_t type = H5Aget_type(attr);
+  hid_t type = H5Tcopy(H5T_C_S1);
   hid_t space = H5Aget_space(attr);
   if (H5Tget_class(type) == H5T_STRING) {
-    int size = H5Tget_size(type);
-    str = (char *) MALLOC(sizeof(char)*size);
-    H5Aread(attr, H5Tget_native_type(type, H5T_DIR_DEFAULT), str);
+    H5Tset_size(type, H5T_VARIABLE);
+    H5Aread(attr, type, &str);
   }
   H5Tclose(type);
   H5Sclose(space);
@@ -143,7 +142,7 @@ smap_meta *read_smap_meta(const char *dataFile)
   hid_t hOrbit = H5Gopen(hMeta, "OrbitMeasuredLocation", H5P_DEFAULT);
   smap->argument_of_perigee = get_float_attr(hOrbit, "argumentOfPerigee");
 	smap->eccentricity = get_float_attr(hOrbit, "eccentricity");
-	smap->epoch = get_float_attr(hOrbit, "epoch");
+	strcpy(smap->epoch, get_string_attr(hOrbit, "epoch"));
   strcpy(smap->equator_crossing_date_time, 
   	get_string_attr(hOrbit, "equatorCrossingDateTime"));
   smap->equator_crossing_longitude = 
@@ -661,6 +660,7 @@ void import_smap(const char *inBaseName, const char *outBaseName,
     appendBand(band, "lon", meta->general->bands);
     band++;
   }
+  /*
   if (find_dataset(inDataName, "cylindrical_grid_row_index")) {
     appendBand(band, "cyl_row", meta->general->bands);
     band++;
@@ -677,6 +677,7 @@ void import_smap(const char *inBaseName, const char *outBaseName,
     appendBand(band, "pol_col", meta->general->bands);
     band++;
   }
+  */
   meta->general->band_count = band;
   meta->general->no_data = -9999;
   meta_write(meta, inDataName);
@@ -724,6 +725,7 @@ void import_smap(const char *inBaseName, const char *outBaseName,
     	read_smap_data("cell_lat", band, inDataName, outDataName);
     if (find_dataset(inDataName, "cell_lon"))
     	read_smap_data("cell_lon", band, inDataName, outDataName);
+    /*
     if (find_dataset(inDataName, "cylindrical_grid_row_index"))
     	read_smap_data("cylindrical_grid_row_index", band, inDataName, 
 	    	outDataName);
@@ -734,6 +736,7 @@ void import_smap(const char *inBaseName, const char *outBaseName,
     	read_smap_data("polar_grid_row_index", band, inDataName, outDataName);
     if (find_dataset(inDataName, "polar_grid_column_index"))
     	read_smap_data("polar_grid_column_index", band, inDataName, outDataName);
+    */
   }
 	update_geolocation(inDataName, outDataName);
 

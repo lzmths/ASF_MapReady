@@ -19,7 +19,7 @@ typedef struct {
   char range_ending_date_time[30];
 
 	// orbital information
-	double epoch;
+	char epoch[30];
 	double argument_of_perigee;
   char equator_crossing_date_time[30];
   double equator_crossing_longitude;
