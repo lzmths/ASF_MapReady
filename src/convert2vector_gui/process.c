@@ -112,13 +112,15 @@ void process()
 
   char *odir = get_string_from_entry("output_directory_entry");
   char *ofile = get_string_from_entry("output_file_entry");
-
+  int odir_check;
+  
   if (strlen(odir) > 0) {
 #ifdef win32
-    if (odir[strlen(odir)-1]=='/' || odir[strlen(odir)-1]=='\\')
+    odir_check = odir[strlen(odir)-1]=='/' || odir[strlen(odir)-1]=='\\';
 #else
-    if (odir[strlen(odir)-1]=='/')
+    odir_check = odir[strlen(odir)-1]=='/';
 #endif
+    if (odir_check)
       sprintf(cp->out_file, "%s%s", odir, ofile);
     else
       sprintf(cp->out_file, "%s/%s", odir, ofile);
